@@ -1,0 +1,12 @@
+# Standard ignores. They don't affect code usability.
+build/
+__pycache__/
+*~
+Thumbs.db
+
+# PyCharm
+*.iws
+workspace.xml
+
+
+# Project-specific
