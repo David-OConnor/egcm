@@ -72,11 +72,7 @@ import statsmodels.api as sm
 from statsmodels.tsa import stattools as ts
 from statsmodels.stats import diagnostic
 
-from egcm_base import rcoint
-import johansen
-import egcm_data
-import bvr
-import pgff
+from egcm import egcm_base, egcm_data, bvr, pgff, johansen
 
 
 ################################################
@@ -321,7 +317,7 @@ def egc_test_power(test_method=egcm_env.urtest_default, rho=0.95, n=250, nrep=10
     identified as cointegrated.
     """
 
-    pvalues = np.repeat(test_egcm(rcoint(n, rho=rho)['p_value'], test_method), nrep)
+    pvalues = np.repeat(test_egcm(egcm_base.rcoint(n, rho=rho)['p_value'], test_method), nrep)
     return sum(pv for pv in pvalues if pv < p_value) / pvalues.size
 
 
@@ -339,7 +335,7 @@ def egc_quantiles(test_method=egcm_env.urtest_default,
                   q=(0.0001, 0.001, 0.01, 0.025, 0.05, 0.10, 0.20, 0.50, 0.80,
                      0.90, 0.95, 0.975, 0.99, 0.999, 0.9999)):
     """Calculates quantiles of the unit root test statistic under the assumption rho=1."""
-    qvals = np.repeat(egcm(rcoint(sample_size, rho=1), urtest=test_method)['r_stat'], nrep)
+    qvals = np.repeat(egcm(egcm_base.rcoint(sample_size, rho=1), urtest=test_method)['r_stat'], nrep)
     # return quantile(qvals, q)
 
 
