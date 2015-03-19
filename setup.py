@@ -7,8 +7,6 @@ setup(
     name = "egcm",
     version = "0.1",
     packages = find_packages(),
-    # packages = ['egcm',
-    #             ],
 
     install_requires = ['arch>=3.0',
                         'arrow>=0.5.4',

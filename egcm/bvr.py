@@ -166,7 +166,7 @@ def test(Y, detrend=False):
     """Tests for a unit root of an AR(1) process using the variance ratio
     test of Breitung."""
 
-    from egcm import quantile_table_interpolate
+    from base import quantile_table_interpolate
 
     DNAME = "placeholder"
     STAT = bvr_rho(Y, detrend=detrend)

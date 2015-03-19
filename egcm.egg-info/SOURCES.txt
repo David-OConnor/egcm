@@ -1,0 +1,14 @@
+setup.py
+egcm/__init__.py
+egcm/bvr.py
+egcm/coint_tables.py
+egcm/egcm.py
+egcm/egcm_base.py
+egcm/egcm_data.py
+egcm/johansen.py
+egcm/pgff.py
+egcm.egg-info/PKG-INFO
+egcm.egg-info/SOURCES.txt
+egcm.egg-info/dependency_links.txt
+egcm.egg-info/requires.txt
+egcm.egg-info/top_level.txt

@@ -72,7 +72,12 @@ import statsmodels.api as sm
 from statsmodels.tsa import stattools as ts
 from statsmodels.stats import diagnostic
 
-from egcm import egcm_base, egcm_data, bvr, pgff, johansen
+
+from . import base
+from . import data
+from . import pgff
+from . import bvr
+from . import johansen
 
 
 ################################################
@@ -181,11 +186,11 @@ def test_egcm(EGCM, test_method=egcm_env.urtest_default):
         jo = johansen.coint_johansen(X, 0, 2)
         if test_method == 'jo-e':
             STAT = jo.lr2
-            PVAL = quantile_table_interpolate(egcm_data.egc_joe_qtab, R.size, STAT)
+            PVAL = base.quantile_table_interpolate(data.egc_joe_qtab, R.size, STAT)
             URTEST = "Johansen eigenvalue test"
         else:
             STAT = jo.lr1
-            PVAL = quantile_table_interpolate(egcm_data.egc_jot_qtab, R.size, STAT)
+            PVAL = base.quantile_table_interpolate(data.egc_jot_qtab, R.size, STAT)
             URTEST = "Johansen trace test."
 
         htest = {
@@ -244,20 +249,20 @@ def egc_residuals_test(R, test_method=None):
             PVAL = adf[1]
             URTEST = "Augmented Dickey-Fuller test (Raw)"
         else:
-            PVAL = quantile_table_interpolate(egcm_data.egc_adf_qtab, R.size, STAT)
+            PVAL = base.quantile_table_interpolate(data.egc_adf_qtab, R.size, STAT)
             URTEST = "Augmented Dickey-Fuller test"
 
     # Uses egcm module's own implemention of pgff.
     elif test_method == 'pgff':
        STAT = pgff.rho_ws(R, detrend=True)
-       PVAL = quantile_table_interpolate(egcm_data.egc_pgff_qtab, R.size, STAT)
+       PVAL = base.quantile_table_interpolate(data.egc_pgff_qtab, R.size, STAT)
        URTEST = "Pantula, Gonzales-Farias and Fuller Unit Root Test"
 
     elif test_method == 'pp':
         lags = int(np.floor(4*(R.size/100)**0.25))
         pp = ur.PhillipsPerron(R, trend='ct', lags=lags, test_type='rho')
         STAT = pp.stat
-        PVAL = quantile_table_interpolate(egcm_data.egc_pp_qtab, R.size, STAT)
+        PVAL = base.quantile_table_interpolate(data.egc_pp_qtab, R.size, STAT)
         URTEST = "Phillips-Perron test"
 
     # Can't find a non-GLS ERS test in python.
@@ -271,19 +276,19 @@ def egc_residuals_test(R, test_method=None):
     elif test_method == 'ers-d':
         ers = ur.DFGLS(R, trend='c')
         STAT = ers.stat
-        PVAL = quantile_table_interpolate(egcm_data.egc_ersd_qtab, R.size, STAT)
+        PVAL = base.quantile_table_interpolate(data.egc_ersd_qtab, R.size, STAT)
         URTEST = "Elliott, Rothenberg and Stock’s GLS version of the Dickey-Fuller test"
 
     elif test_method == 'sp-r':
         sp = ur.KPSS(R)
         STAT = sp.stat
-        PVAL = quantile_table_interpolate(egcm_data.egc_spr_qtab, R.size, STAT)
+        PVAL = base.quantile_table_interpolate(data.egc_spr_qtab, R.size, STAT)
         URTEST = "Kwiatkowski, Phillips, Schmidt and Shin (KPSS) stationarity test."
 
     # Uses egcm module's own implemention of pgff.
     elif test_method == 'bvr':
         STAT = bvr.bvr_rho(R)
-        PVAL = quantile_table_interpolate(egcm_data.egc_bvr_qtab, R.size, STAT)
+        PVAL = base.quantile_table_interpolate(data.egc_bvr_qtab, R.size, STAT)
         URTEST = 'Breitung Variance Ratio Test'
 
     # Can't find hurst test for Python.
@@ -317,7 +322,7 @@ def egc_test_power(test_method=egcm_env.urtest_default, rho=0.95, n=250, nrep=10
     identified as cointegrated.
     """
 
-    pvalues = np.repeat(test_egcm(egcm_base.rcoint(n, rho=rho)['p_value'], test_method), nrep)
+    pvalues = np.repeat(test_egcm(base.rcoint(n, rho=rho)['p_value'], test_method), nrep)
     return sum(pv for pv in pvalues if pv < p_value) / pvalues.size
 
 
@@ -335,7 +340,7 @@ def egc_quantiles(test_method=egcm_env.urtest_default,
                   q=(0.0001, 0.001, 0.01, 0.025, 0.05, 0.10, 0.20, 0.50, 0.80,
                      0.90, 0.95, 0.975, 0.99, 0.999, 0.9999)):
     """Calculates quantiles of the unit root test statistic under the assumption rho=1."""
-    qvals = np.repeat(egcm(egcm_base.rcoint(sample_size, rho=1), urtest=test_method)['r_stat'], nrep)
+    qvals = np.repeat(egcm(base.rcoint(sample_size, rho=1), urtest=test_method)['r_stat'], nrep)
     # return quantile(qvals, q)
 
 
@@ -396,8 +401,8 @@ def egcm(X, Y=None, log=False, normalize=False, debias=True, robust=False,
         raise ValueError("P-values less than 0.001 are not supported")
 
     if normalize:
-        # S1 = S1 /
-        pass
+        S1 = S1 / S1[0]
+        S2 = S2 / S2[0]
 
     if log:
         S1 = np.log(S1)
@@ -432,6 +437,8 @@ def egcm(X, Y=None, log=False, normalize=False, debias=True, robust=False,
     R = L.resid if robust else L.resid_pearson
     FR = R[1:]
     BR = R[: -1]
+
+    print(R[:10], 'r base')
 
     if not robust:
         LR = sm.GLM(FR, BR).fit()
@@ -489,10 +496,9 @@ def egcm(X, Y=None, log=False, normalize=False, debias=True, robust=False,
 
     # ljungbox doesn't support sample sizes smaller than 41.
     if eps.size > 40:
-        lb = diagnostic.acorr_ljungbox(eps)
-        # todo ljung's returnign an array; wtf
-        lb_value = lb[0]
-        lb_pvalue = lb[1]
+        lb = diagnostic.acorr_ljungbox(eps, lags=1)
+        lb_value = float(lb[0])
+        lb_pvalue = float(lb[1])
     else:
         lb_value = None
         lb_pvalue = None
@@ -583,7 +589,7 @@ def rho_hat_sample(self):
 # todo this won't work without rcoint.
 
 
-def qtab_to_ltab(tab=egcm_data.rho_bias_qtab):
+def qtab_to_ltab(tab=data.rho_bias_qtab):
     pass
 
 
@@ -634,7 +640,7 @@ def debias_rho(sample_size, rho):
 
     # For a given sample size, the bias is well described as a linear
     # function of rho.
-    table = egcm_data.rho_bias_ltab
+    table = data.rho_bias_ltab
     i = bisect.bisect_right(table['n'], sample_size) - 1
 
     if i == -1:
@@ -656,40 +662,6 @@ def debias_rho(sample_size, rho):
         y = min(y, 1)
 
     return y
-
-
-# from egcm_base.R
-def quantile_table_interpolate(qtab, sample_size, stat, stop_on_na=False):
-    """
-    On input, qtab is a dataframe of quantiles. Each column corresponds to
-    a sample size, and each row corresponds to a quantile value. The sample
-    sizes are given in the first row, and the quantiles are given in the
-    first column.
-    """
-
-    i = bisect.bisect_right(qtab.iloc[0, 1:], sample_size)
-    if i == 0:
-        parent_name = 'placeholder'
-        if stop_on_na:
-            raise AttributeError("{0} requires a minimum of {1} "
-                                 "observations".format(parent_name, qtab.iloc[0, 1]))
-        else:
-            print("Warning: {0} requires a minimum of {1} "
-                  "observations".format(parent_name, qtab.iloc[0, 1]))
-            return
-
-    y1 = np.interp(stat, qtab.iloc[1:, i], qtab.iloc[1:, 0])
-    if i < len(qtab.columns) - 1:
-        y2 = np.interp(stat, qtab.iloc[1:, i+1], qtab.iloc[1:, 0])
-        n1 = qtab.iloc[0, i]
-        n2 = qtab.iloc[0, i+1]
-        y = y1 * (n2 - sample_size) / (n2 - n1) + y2 * (sample_size - n1) / (n2 - n1)
-    else:
-        y = y1
-
-    return y
-
-
 
 
 def cbtab_to_rhobtab(cbt):

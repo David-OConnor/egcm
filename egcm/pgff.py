@@ -48,7 +48,7 @@ import numpy as np
 import pandas as pd
 import scipy.signal
 
-from egcm import egcm_base
+from . import base
 
 
 def rho_ws(Y, detrend=False):
@@ -75,7 +75,7 @@ def pgff_quantiles(sample_size=100, nrep=40000,
                    sd=1, detrend=False):
     """Calculates quantiles of the pgff_rho_ws function under the assumptions
     a_0 = 0 and a_1 = 1."""
-    qvals = np.repeat(rho_ws(egcm_base.rar1(sample_size, sd=sd), detrend=detrend), nrep)
+    qvals = np.repeat(rho_ws(base.rar1(sample_size, sd=sd), detrend=detrend), nrep)
     return np.percentile(qvals, q)
 
 
@@ -177,7 +177,7 @@ def test(Y, detrend=False):
     """Tests for a unit root of an AR(1) process using the method of
     Pantula, Gonzales-Farias and Fuller."""
 
-    from egcm import quantile_table_interpolate
+    from base import quantile_table_interpolate
 
     DNAME = "placeholder"
     STAT = rho_ws(Y, detrend=detrend)
