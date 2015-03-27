@@ -24,6 +24,8 @@ import numpy as np
 import pandas as pd
 import scipy.signal
 
+from . import base
+
 
 def bvr_rho(Y, detrend=False):
     """
@@ -48,7 +50,7 @@ def bvr_quantiles(sample_size=100, nrep=40000,
                   sd=1, detrend=False):
     """Calculates quantiles of the bvr_rho_ws function under the assumptions
     a_0 = 0 and a_1 = 1."""
-    qvals = np.repeat(bvr_rho(rar1(sample_size, sd=sd), detrend=detrend), nrep)
+    qvals = np.repeat(bvr_rho(base.rar1(sample_size, sd=sd), detrend=detrend), nrep)
     return np.percentile(qvals, q)
 
 

@@ -14,13 +14,13 @@ setup(
                         'pandas>=0.15.2',
                         'statsmodels>=0.6.1'],
 
-    package_dir = {'egcm': 'egcm'},
+    # package_dir = {'egcm': 'egcm'},
 
     author = "Matthew Clegg, David O'Connor",
     author_email = "david.alan.oconnor@gmail.com",
     description = "Engle-Granger 2-step Cointegration for Python",
     long_description = readme,
-    license = "LGPL",
+    license = "GPL",
     keywords = "cointegration, egcm, engle-granger",
 
 )

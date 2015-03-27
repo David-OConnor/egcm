@@ -3,6 +3,7 @@ build/
 __pycache__/
 *~
 Thumbs.db
+*.egg-info/
 
 # PyCharm
 *.iws

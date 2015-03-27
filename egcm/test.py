@@ -64,6 +64,7 @@
 # Series with R. Springer.
 
 import bisect
+from collections import namedtuple
 
 import arch.unitroot as ur
 import numpy as np
@@ -437,8 +438,6 @@ def egcm(X, Y=None, log=False, normalize=False, debias=True, robust=False,
     R = L.resid if robust else L.resid_pearson
     FR = R[1:]
     BR = R[: -1]
-
-    print(R[:10], 'r base')
 
     if not robust:
         LR = sm.GLM(FR, BR).fit()

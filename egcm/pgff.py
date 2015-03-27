@@ -177,13 +177,11 @@ def test(Y, detrend=False):
     """Tests for a unit root of an AR(1) process using the method of
     Pantula, Gonzales-Farias and Fuller."""
 
-    from base import quantile_table_interpolate
-
     DNAME = "placeholder"
     STAT = rho_ws(Y, detrend=detrend)
 
     qtab = pgff_qtab_detrended if detrend else pgff_qtab
-    PVAL = quantile_table_interpolate(qtab, Y.size, STAT)
+    PVAL = base.quantile_table_interpolate(qtab, Y.size, STAT)
 
     suffix = " detrended" if detrend else ""
     METHOD = "Pantula, Gonzales-Farias and Fuller Unit Root Test{0}".format(suffix)
