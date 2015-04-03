@@ -35,9 +35,8 @@ def quantile_table_interpolate(qtab, sample_size, stat):
     return y
 
 
-# 4300% faster with no detrend, 270% faster with detrend.
 @numba.jit
-def pgff(Y, is_i1test):
+def pgff_(Y, is_i1test):
     # If is_i1test, don't detrend the data, and use pgff's quantile table interp
     # instead of the egc version. If not, it's a unit root test on residuals;
     # in this case, detrend the data, and use egc_pgff_qtab.
@@ -48,7 +47,7 @@ def pgff(Y, is_i1test):
     den2 = 0.
 
     if not is_i1test:
-        y = scipy.signal.detrend(Y)
+        y = quick.detrend(Y, 'l')
 
         for i in range(M):
             y_squared_sum += y[i] ** 2
@@ -85,14 +84,11 @@ def pgff(Y, is_i1test):
 
 
 # todo numba's not helping atm.
-# @numba.jit
+# @numba.jit()
 def egcm(S1, S2):
     """Optimized version of egcm.egcm.  Reference it for comments."""
     log_ = False
     normalize = False
-    robust = False
-    include_const = True
-    p_val = .05
 
     # Detrend is true for urtest, false for i1test. Takes longer.
 
@@ -100,16 +96,19 @@ def egcm(S1, S2):
         # log_optimized performance is similar to np.log.
         S1 = log(S1)
         S2 = log(S2)
-        # S1 = np.log(S1)
-        # S2 = np.log(S2)
+        S1 = np.log(S1)
+        S2 = np.log(S2)
 
-    # todo see if you can speed the glm
-    L = sm.GLM(S2, ts.add_constant(S1, prepend=False)).fit()
+    # todo see if you can implement a fast RLM. Much more accurate, takes MUCH longer than
+    # todo your optimized OLS/GLM solution.
 
-    R = L.resid if robust else L.resid_pearson
-    r_stat, r_pval = pgff(R, False)
+    slope, intercept = quick.ols(S1, S2)
+    R = quick.ols_resids(S1, S2, slope, intercept)
+
+    r_stat, r_pval = pgff_(R, False)
 
     return r_stat, r_pval
+
 
 # todo implement your own log part, and move to quick.
 @numba.jit

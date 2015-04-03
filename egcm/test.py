@@ -417,18 +417,23 @@ def egcm(X, Y=None, log=False, normalize=False, debias=True, robust=False,
 
     # Note: The robust regressions are returning slightly different results
     # from the R equivalent. Global are returning the same.
+
+    # Global regressions seem to have the same results as running an OLS. Robusts are much slower,
+    # But much more accurate. AFAIK, always use include_const, or the Y intercept is placed at 0,
+    # regardless if that's appropriate.
+
     if robust and include_const:
-        L = sm.RLM(S2, ts.add_constant(S1, prepend=False)).fit()
-        alpha = L.params[1]
-        beta = L.params[0]
+        L = sm.RLM(S2, ts.add_constant(S1)).fit()
+        alpha = L.params[0]
+        beta = L.params[1]
     elif robust:
         L = sm.RLM(S2, S1).fit()
         alpha = 0
         beta = L.params[0]
     elif include_const:
-        L = sm.GLM(S2, ts.add_constant(S1, prepend=False)).fit()
-        alpha = L.params[1]
-        beta = L.params[0]
+        L = sm.GLM(S2, ts.add_constant(S1)).fit()
+        alpha = L.params[0]
+        beta = L.params[1]
     else:
         L = sm.GLM(S2, S1).fit()
         alpha = 0
