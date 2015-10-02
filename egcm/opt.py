@@ -5,7 +5,7 @@ import math
 
 import numba
 import numpy as np
-import quick
+import brisk
 import scipy.signal
 import statsmodels.api as sm
 from statsmodels.tsa import stattools as ts
@@ -21,11 +21,11 @@ egc_pgff_qtab = np.array(data.egc_pgff_qtab)
 # qti is slighly slower (1microsec) with numba enabled than without.
 @numba.jit(nopython=True)
 def quantile_table_interpolate(qtab, sample_size, stat):
-    i = quick.bisect(qtab[0, 1:], sample_size)
+    i = brisk.bisect(qtab[0, 1:], sample_size)
 
-    y1 = quick.interp_one(stat, qtab[1:, i], qtab[1:, 0])
+    y1 = brisk.interp_one(stat, qtab[1:, i], qtab[1:, 0])
     if i < qtab.shape[1] - 1:
-        y2 = quick.interp_one(stat, qtab[1:, i+1], qtab[1:, 0])
+        y2 = brisk.interp_one(stat, qtab[1:, i+1], qtab[1:, 0])
         n1 = qtab[0, i]
         n2 = qtab[0, i+1]
         y = y1 * (n2 - sample_size) / (n2 - n1) + y2 * (sample_size - n1) / (n2 - n1)
@@ -47,14 +47,14 @@ def pgff_(Y, is_i1test):
     den2 = 0.
 
     if not is_i1test:
-        y = quick.detrend(Y, 'l')
+        y = brisk.detrend(Y, 'l')
 
         for i in range(M):
             y_squared_sum += y[i] ** 2
             den2 += (1 / M) * y[i] ** 2
 
     else:
-        mean = quick.mean(Y)
+        mean = brisk.mean(Y)
 
         y = np.empty(M, dtype=np.float)
         for i in range(M):
@@ -102,15 +102,15 @@ def egcm(S1, S2):
     # todo see if you can implement a fast RLM. Much more accurate, takes MUCH longer than
     # todo your optimized OLS/GLM solution.
 
-    slope, intercept = quick.ols(S1, S2)
-    R = quick.ols_resids(S1, S2, slope, intercept)
+    slope, intercept = brisk.ols(S1, S2)
+    R = brisk.lin_resids(S1, S2, slope, intercept)
 
     r_stat, r_pval = pgff_(R, False)
 
     return r_stat, r_pval
 
 
-# todo implement your own log part, and move to quick.
+# todo implement your own log part, and move to brisk.
 @numba.jit
 def log(s):
     M = s.size
